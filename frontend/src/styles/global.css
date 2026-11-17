@@ -1,0 +1,250 @@
+/* ============================================================
+   医养接力站 · 全局设计系统 v2「接力手记」
+   ------------------------------------------------------------
+   取向：像一本被人认真写过的交接手记——暖纸底、墨绿字、朱砂批注。
+   三条规则：
+   1) 数字要大，大到隔着一米能念出来（护士站台 / 答辩投影都一样）；
+   2) 层级靠"纸、线、留白"，不靠阴影和渐变；
+   3) 强调色只用来指"下一步做什么"或"这里出事了"，其余一律墨绿。
+   ============================================================ */
+
+:root {
+  /* 纸与墨 */
+  --paper: #f6f2e9;
+  --paper-deep: #efe8da;
+  --card: #fffdf8;
+  --line: #e2d8c6;
+  --line-soft: #efe7d8;
+
+  --ink: #17251f;
+  --ink-soft: #46564f;
+  --ink-mute: #7c8880;
+
+  /* 主色：墨绿；语义色：朱砂 / 赭石 */
+  --primary: #12433a;
+  --primary-deep: #0b2f28;
+  --primary-mid: #1d6b57;
+  --primary-soft: #e5efe9;
+
+  --amber: #91621b;
+  --amber-soft: #f8eed8;
+  --danger: #a3342a;
+  --danger-soft: #f9e7e3;
+
+  --shadow: 0 1px 0 rgba(23, 37, 31, 0.04), 0 14px 30px -24px rgba(23, 37, 31, 0.5);
+  --radius: 16px;
+  --radius-sm: 10px;
+  --sidebar: 244px;
+
+  font-family: "PingFang SC", "Microsoft YaHei", "Source Han Sans SC", "Noto Sans SC", system-ui, sans-serif;
+  color: var(--ink);
+  background: var(--paper);
+  font-size: 15px;
+  line-height: 1.68;
+  -webkit-font-smoothing: antialiased;
+}
+
+* { box-sizing: border-box; }
+
+body {
+  margin: 0;
+  min-height: 100vh;
+  color: var(--ink);
+  background-color: var(--paper);
+  /* 极淡的纸纹：两层几乎看不见的斜线，只为让大块留白不显得"塑料" */
+  background-image:
+    repeating-linear-gradient(135deg, rgba(23, 37, 31, 0.014) 0 1px, transparent 1px 7px),
+    radial-gradient(1200px 420px at 88% -12%, rgba(29, 107, 87, 0.07), transparent 62%);
+}
+
+h1, h2, h3, h4 { margin: 0; font-weight: 650; letter-spacing: -0.02em; color: var(--ink); }
+h1 { font-size: 34px; line-height: 1.22; font-family: "Songti SC", "Source Han Serif SC", "SimSun", serif; font-weight: 700; letter-spacing: 0.01em; }
+h2 { font-size: 20px; }
+h3 { font-size: 16px; }
+p { margin: 0; }
+a { color: var(--primary-mid); text-decoration: none; }
+button { font: inherit; cursor: pointer; }
+
+.num, .table td.num, .stat-value { font-variant-numeric: tabular-nums; font-feature-settings: "tnum"; }
+
+/* ---------- 结构 ---------- */
+.page { padding: 30px 34px 72px; max-width: 1200px; margin: 0 auto; }
+.page-head { display: flex; align-items: flex-end; justify-content: space-between; gap: 18px; margin-bottom: 24px; flex-wrap: wrap; }
+.page-head .sub { color: var(--ink-mute); font-size: 13.5px; margin-top: 8px; max-width: 62ch; }
+.page-head .actions { display: flex; gap: 10px; flex-wrap: wrap; }
+/* 标题下的双线：一条实、一条虚，像手记里的分隔线 */
+.page-head h1 { position: relative; padding-bottom: 10px; }
+.page-head h1::after {
+  content: ""; position: absolute; left: 0; right: 22%; bottom: 0; height: 3px;
+  background: linear-gradient(90deg, var(--primary) 0 46%, var(--line) 46% 100%);
+}
+
+.grid { display: grid; gap: 16px; }
+.grid.cols-2 { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+.grid.cols-3 { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+.grid.cols-4 { grid-template-columns: repeat(4, minmax(0, 1fr)); }
+
+.card {
+  position: relative;
+  background: var(--card);
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  padding: 20px 22px;
+  box-shadow: var(--shadow);
+}
+.card.tight { padding: 15px 17px; }
+.card-head { display: flex; align-items: center; justify-content: space-between; gap: 12px; margin-bottom: 16px; }
+.card-head .hint { color: var(--ink-mute); font-size: 12px; }
+/* 卡片标题前的短竖条：全套界面统一的"栏目感" */
+.card > h3, .card-head > h3, .card-head h3 {
+  display: flex; align-items: center; gap: 9px;
+}
+.card > h3::before, .card-head h3::before {
+  content: ""; width: 4px; height: 15px; border-radius: 2px;
+  background: var(--primary-mid); flex: none;
+}
+
+.row { display: flex; align-items: center; gap: 10px; }
+.row.wrap { flex-wrap: wrap; }
+.col { display: flex; flex-direction: column; gap: 4px; }
+.spacer { flex: 1; }
+.stack { display: flex; flex-direction: column; gap: 12px; }
+.divider { height: 1px; background: var(--line); margin: 16px 0; }
+
+/* ---------- 文字 ---------- */
+.muted { color: var(--ink-mute); font-size: 13px; }
+.soft { color: var(--ink-soft); }
+.small { font-size: 13px; }
+.mono { font-family: "Cascadia Mono", Consolas, ui-monospace, monospace; font-size: 12.5px; }
+.lead { font-size: 15px; color: var(--ink-soft); max-width: 72ch; }
+.kicker {
+  display: inline-flex; align-items: center; gap: 8px;
+  font-size: 11px; letter-spacing: 0.18em; text-transform: uppercase;
+  color: var(--primary-mid); font-weight: 650;
+}
+.kicker::before { content: ""; width: 16px; height: 1px; background: currentColor; }
+
+/* ---------- 按钮 ---------- */
+.btn {
+  display: inline-flex; align-items: center; justify-content: center; gap: 7px;
+  height: 38px; padding: 0 18px; border-radius: 999px;
+  border: 1px solid var(--line); background: var(--card); color: var(--ink);
+  font-weight: 500;
+  transition: background 0.15s ease, border-color 0.15s ease, transform 0.05s ease, box-shadow 0.15s ease;
+}
+.btn:hover { border-color: #cbbfa9; background: #fffdf8; box-shadow: 0 1px 0 rgba(23, 37, 31, 0.05); }
+.btn:active { transform: translateY(1px); }
+.btn:disabled { opacity: 0.45; cursor: not-allowed; box-shadow: none; }
+.btn.primary { background: var(--primary); border-color: var(--primary); color: #f7f4ea; }
+.btn.primary:hover { background: var(--primary-deep); border-color: var(--primary-deep); }
+.btn.ghost { background: transparent; }
+.btn.danger { color: var(--danger); border-color: #e5c3bd; }
+.btn.danger:hover { background: var(--danger-soft); }
+.btn.sm { height: 31px; padding: 0 13px; font-size: 13px; }
+.btn.block { width: 100%; }
+.btn.lg { height: 47px; padding: 0 24px; font-size: 16px; }
+
+/* ---------- 标签 ---------- */
+.pill {
+  display: inline-flex; align-items: center; gap: 6px;
+  height: 24px; padding: 0 10px; border-radius: 999px;
+  font-size: 12.5px; font-weight: 600; white-space: nowrap;
+  background: var(--primary-soft); color: var(--primary-deep);
+}
+.pill.warn { background: var(--amber-soft); color: var(--amber); }
+.pill.danger { background: var(--danger-soft); color: var(--danger); }
+.pill.quiet { background: var(--paper-deep); color: var(--ink-soft); }
+.pill.line { background: transparent; border: 1px solid var(--line); color: var(--ink-soft); }
+.dot { width: 6px; height: 6px; border-radius: 50%; background: currentColor; flex: none; }
+
+/* ---------- 表单 ---------- */
+.field { display: flex; flex-direction: column; gap: 7px; }
+.field > label { font-size: 13px; color: var(--ink-soft); font-weight: 550; }
+.input, .textarea, .select {
+  width: 100%; border: 1px solid var(--line); border-radius: var(--radius-sm);
+  background: #fffefb; padding: 10px 13px; font: inherit; color: var(--ink);
+  transition: border-color 0.15s ease, box-shadow 0.15s ease;
+}
+.input:focus, .textarea:focus, .select:focus {
+  outline: none; border-color: var(--primary-mid); box-shadow: 0 0 0 3px rgba(29, 107, 87, 0.13);
+}
+.textarea { min-height: 190px; resize: vertical; line-height: 1.75; }
+
+/* ---------- 表格：行之间用虚线，像手账的横格 ---------- */
+.table { width: 100%; border-collapse: collapse; font-size: 14px; }
+.table th {
+  text-align: left; font-weight: 600; color: var(--ink-mute); font-size: 11.5px;
+  letter-spacing: 0.06em; text-transform: uppercase;
+  padding: 8px 10px; border-bottom: 1px solid var(--line); white-space: nowrap;
+}
+.table td { padding: 12px 10px; border-bottom: 1px dashed var(--line-soft); vertical-align: middle; }
+.table tr:last-child td { border-bottom: none; }
+.table tbody tr:hover td { background: #fbf7ee; }
+.table td:first-child { font-weight: 600; }
+
+/* ---------- 其他 ---------- */
+.empty { text-align: center; color: var(--ink-mute); padding: 36px 10px; font-size: 14px; }
+.note {
+  border-left: 3px solid var(--primary-mid); background: var(--primary-soft);
+  padding: 11px 15px; border-radius: 0 var(--radius-sm) var(--radius-sm) 0;
+  font-size: 13.5px; color: var(--primary-deep);
+}
+.note.ok { border-color: var(--primary-mid); background: #e8f1ea; color: #14473a; }
+.note.warn { border-color: var(--amber); background: var(--amber-soft); color: #6b4713; }
+.note.danger { border-color: var(--danger); background: var(--danger-soft); color: #73251d; }
+.spin { width: 18px; height: 18px; border: 2px solid rgba(29, 107, 87, 0.25); border-top-color: var(--primary-mid); border-radius: 50%; animation: spin 0.7s linear infinite; display: inline-block; }
+@keyframes spin { to { transform: rotate(360deg); } }
+@keyframes fade-up { from { opacity: 0; transform: translateY(6px); } to { opacity: 1; transform: none; } }
+.fade-up { animation: fade-up 0.28s ease both; }
+
+@media (max-width: 980px) {
+  .grid.cols-2, .grid.cols-3, .grid.cols-4 { grid-template-columns: 1fr; }
+  .page { padding: 20px 16px 56px; }
+  h1 { font-size: 26px; }
+}
+
+/* ---------- 表单校验 ---------- */
+.req { color: var(--danger); margin-left: 2px; }
+
+.field-error { margin: 6px 0 0; font-size: 12.5px; line-height: 1.5; color: var(--danger); }
+
+.input.invalid, .select.invalid { border-color: var(--danger); background: #fdf6f4; }
+.input.invalid:focus, .select.invalid:focus { box-shadow: 0 0 0 3px rgba(163, 52, 42, 0.13); }
+
+.form-alert {
+  display: flex; align-items: center; gap: 8px;
+  margin: 16px 0 0; padding: 11px 13px; border-radius: var(--radius-sm);
+  background: #fdf0ec; border: 1px solid #eecfc8; color: #8c2b21; font-size: 13px;
+}
+.form-alert .dot { width: 7px; height: 7px; border-radius: 50%; background: var(--danger); flex: none; }
+/* ---------- 适老化：大字 / 高对比 ----------
+   v2 改版时这两组规则被漏掉了，导致"大字/高对比"按钮点了没反应（2026-11-08 检查发现）。
+   大字用 zoom 整体放大：站内尺寸几乎都是 px，改根字号不会生效。 */
+html[data-large-text='true'] {
+  zoom: 1.14;
+}
+
+html[data-high-contrast='true'] {
+  --ink: #000000;
+  --ink-soft: #141414;
+  --ink-mute: #333333;
+  --paper: #ffffff;
+  --paper-deep: #f2f2f2;
+  --card: #ffffff;
+  --line: #111111;
+  --line-soft: #6b6b6b;
+  --primary: #00332b;
+  --primary-deep: #00211c;
+  --primary-mid: #00584a;
+  --primary-soft: #dcefe8;
+  --amber: #6b3d00;
+  --amber-soft: #fff0cf;
+  --danger: #8a1409;
+  --danger-soft: #ffe2dd;
+  --shadow: none;
+}
+
+html[data-high-contrast='true'] body { background-image: none; }
+html[data-high-contrast='true'] .card { border-width: 2px; }
+html[data-high-contrast='true'] .btn { border-width: 2px; }
+html[data-high-contrast='true'] .table td { border-bottom-style: solid; }
