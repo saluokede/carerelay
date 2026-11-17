@@ -1,0 +1,392 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8" />
+<title>医养接力站 · 前端样貌候选（四选一）</title>
+<style>
+  :root { color-scheme: light; }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0;
+    font-family: -apple-system, "PingFang SC", "Microsoft YaHei", "Segoe UI", sans-serif;
+    background: #eceff1;
+    color: #1b1b1b;
+  }
+  .tabs {
+    position: sticky; top: 0; z-index: 9;
+    display: flex; gap: 6px; padding: 10px 14px;
+    background: #ffffff; border-bottom: 1px solid #e2e6e9; flex-wrap: wrap;
+  }
+  .tabs button {
+    border: 1px solid #d8dee2; background: #fff; color: #31413c;
+    padding: 7px 14px; border-radius: 999px; font-size: 13px; cursor: pointer;
+  }
+  .tabs button.on { background: #134e46; border-color: #134e46; color: #fff; }
+  .tabs .hint { margin-left: auto; font-size: 12px; color: #7b8a85; align-self: center; }
+  section.variant { display: none; padding: 22px; }
+  section.variant.on { display: block; }
+
+  /* 让每种风格只改变量，结构完全一致——这样能公平比较"设计"而不是"内容" */
+  .stage { display: grid; grid-template-columns: 232px 1fr; min-height: 620px; border-radius: 16px; overflow: hidden; }
+  .stage .side { padding: 18px 16px; display: flex; flex-direction: column; gap: 14px; }
+  .stage .main { padding: 22px 26px; }
+  .brand { display: flex; gap: 10px; align-items: center; }
+  .brand .logo { width: 34px; height: 34px; border-radius: 9px; display: grid; place-items: center; font-weight: 700; }
+  .brand b { font-size: 15px; letter-spacing: .3px; }
+  .brand small { display: block; font-size: 11px; opacity: .7; font-weight: 400; margin-top: 2px; }
+  .nav { display: flex; flex-direction: column; gap: 4px; margin-top: 8px; }
+  .nav a { display: flex; align-items: center; gap: 8px; padding: 9px 11px; border-radius: 9px; font-size: 13px; text-decoration: none; }
+  .nav a.on { font-weight: 600; }
+  .nav .dot { width: 6px; height: 6px; border-radius: 50%; }
+  .side .foot { margin-top: auto; font-size: 12px; opacity: .65; }
+
+  .kicker { font-size: 11px; letter-spacing: 1.6px; text-transform: uppercase; opacity: .6; }
+  h1 { font-size: 26px; margin: 6px 0 4px; letter-spacing: .2px; }
+  .lead { font-size: 13px; opacity: .7; margin: 0 0 18px; }
+  .stats { display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px; }
+  .stat { border-radius: 12px; padding: 14px 16px; }
+  .stat .k { font-size: 12px; opacity: .7; }
+  .stat .v { font-size: 30px; font-weight: 700; line-height: 1.1; margin-top: 6px; font-variant-numeric: tabular-nums; }
+  .stat .s { font-size: 11px; opacity: .6; margin-top: 4px; }
+  .cols { display: grid; grid-template-columns: 1.15fr .85fr; gap: 14px; margin-top: 14px; }
+  .panel { border-radius: 12px; padding: 16px 18px; }
+  .panel h3 { font-size: 14px; margin: 0 0 12px; font-weight: 600; }
+  .bar { height: 8px; border-radius: 99px; overflow: hidden; margin: 7px 0 10px; }
+  .bar i { display: block; height: 100%; }
+  .rowline { display: flex; justify-content: space-between; font-size: 12px; opacity: .8; }
+  table { width: 100%; border-collapse: collapse; font-size: 13px; }
+  th, td { text-align: left; padding: 9px 8px; }
+  th { font-size: 11px; letter-spacing: .6px; text-transform: uppercase; opacity: .55; font-weight: 600; }
+  .pill { display: inline-block; padding: 2px 9px; border-radius: 99px; font-size: 11px; font-weight: 600; }
+  ul.remind { margin: 0; padding-left: 0; list-style: none; display: flex; flex-direction: column; gap: 10px; }
+  ul.remind li { font-size: 12.5px; line-height: 1.55; }
+  ul.remind b { display: block; font-size: 13px; margin-bottom: 2px; }
+  .timeline { display: flex; gap: 0; margin: 14px 0 4px; }
+  .timeline .node { flex: 1; text-align: center; position: relative; font-size: 11px; }
+  .timeline .node::before { content: ""; position: absolute; top: 9px; left: 0; right: 0; height: 2px; }
+  .timeline .node span { position: relative; z-index: 1; display: inline-grid; place-items: center; width: 20px; height: 20px; border-radius: 50%; font-size: 10px; }
+
+  /* ---------- A 临床工作台：高密度、克制、像真的 HIS ---------- */
+  .a .stage { background: #f4f6f5; grid-template-columns: 216px 1fr; }
+  .a .side { background: #0f2a24; color: #d8e6e1; }
+  .a .brand .logo { background: #1d5c4e; color: #eaf5f1; }
+  .a .nav a { color: #a9c2ba; }
+  .a .nav a.on { background: #1b4a3f; color: #ffffff; }
+  .a .nav .dot { background: #57c9a8; }
+  .a .main { background: #f4f6f5; }
+  .a h1 { font-size: 24px; color: #10221e; }
+  .a .stat { background: #fff; border: 1px solid #e3e9e6; border-radius: 8px; }
+  .a .stat .v { color: #0d3b31; }
+  .a .panel { background: #fff; border: 1px solid #e3e9e6; border-radius: 8px; }
+  .a table th { border-bottom: 1px solid #e3e9e6; }
+  .a tbody tr:nth-child(odd) { background: #fafbfa; }
+  .a .pill.hi { background: #f6e2dd; color: #94331f; }
+  .a .pill.mid { background: #fbf0dc; color: #8a5a12; }
+  .a .pill.lo { background: #e2efe9; color: #1c6b53; }
+  .a .bar { background: #eef1f0; }
+
+  /* ---------- B 接力时间轴：暖纸色、叙事、像给评审讲故事 ---------- */
+  .b .stage { background: #faf7f1; }
+  .b .side { background: #f2ece0; color: #2c3630; border-right: 1px solid #e7dfd0; }
+  .b .brand .logo { background: #146b5b; color: #fff; border-radius: 50%; }
+  .b .nav a { color: #5c6a63; }
+  .b .nav a.on { background: #fff; color: #146b5b; box-shadow: 0 1px 0 #e7dfd0; }
+  .b .nav .dot { background: #b5751f; }
+  .b .main { background: #faf7f1; }
+  .b h1 { font-size: 28px; color: #212a25; font-weight: 700; }
+  .b .stat { background: #fff; border: 1px solid #ebe3d4; border-radius: 14px; box-shadow: 0 1px 2px rgba(80,60,30,.04); }
+  .b .stat .v { color: #146b5b; }
+  .b .panel { background: #fff; border: 1px solid #ebe3d4; border-radius: 14px; }
+  .b table th { border-bottom: 1px solid #efe8da; }
+  .b .pill.hi { background: #f7e3de; color: #a63a2e; }
+  .b .pill.mid { background: #f8ecd6; color: #97631a; }
+  .b .pill.lo { background: #e3efe9; color: #1a6b57; }
+  .b .bar { background: #efe8da; }
+  .b .timeline .node::before { background: #e7dfd0; }
+  .b .timeline .node span { background: #fff; border: 2px solid #146b5b; color: #146b5b; }
+  .b .timeline .node.done span { background: #146b5b; color: #fff; }
+
+  /* ---------- C 温暖适老：大字号、圆角、像家属会用的 App ---------- */
+  .c .stage { background: #fff8f2; grid-template-columns: 244px 1fr; }
+  .c .side { background: #fdeee2; color: #4a3730; }
+  .c .brand .logo { background: #c25e3a; color: #fff; border-radius: 12px; }
+  .c .nav a { color: #7a5c50; font-size: 14px; padding: 11px 13px; border-radius: 12px; }
+  .c .nav a.on { background: #fff; color: #b34f2d; box-shadow: 0 2px 8px rgba(180,110,70,.14); }
+  .c .nav .dot { background: #c25e3a; }
+  .c .main { background: #fff8f2; }
+  .c h1 { font-size: 30px; color: #3a2e28; }
+  .c .lead { font-size: 14px; }
+  .c .stat { background: #fff; border-radius: 20px; box-shadow: 0 6px 18px rgba(160,110,80,.10); }
+  .c .stat .k { font-size: 13px; }
+  .c .stat .v { color: #b34f2d; font-size: 34px; }
+  .c .panel { background: #fff; border-radius: 20px; box-shadow: 0 6px 18px rgba(160,110,80,.08); }
+  .c table { font-size: 14px; }
+  .c th { opacity: .6; }
+  .c .pill.hi { background: #fbe0d8; color: #b1361c; }
+  .c .pill.mid { background: #fcecd2; color: #9a6412; }
+  .c .pill.lo { background: #dfeee2; color: #276b45; }
+  .c .bar { background: #f6ece2; height: 10px; }
+
+  /* ---------- D 数据叙事：深底、荧光点、像路演大屏 ---------- */
+  .d .stage { background: #0d1412; }
+  .d .side { background: #0a100e; color: #cfe6df; border-right: 1px solid #1b2a26; }
+  .d .brand .logo { background: #29e0b0; color: #06211a; }
+  .d .nav a { color: #8fb3aa; }
+  .d .nav a.on { background: #16241f; color: #29e0b0; }
+  .d .nav .dot { background: #d6ff5c; }
+  .d .main { background: radial-gradient(1200px 300px at 80% -10%, #16302a 0%, #0d1412 60%); }
+  .d h1 { color: #eaf6f1; }
+  .d .lead { color: #8fb3aa; }
+  .d .kicker { color: #29e0b0; opacity: .9; }
+  .d .stat { background: #131e1b; border: 1px solid #21332d; border-radius: 12px; }
+  .d .stat .k { color: #8fb3aa; }
+  .d .stat .v { color: #29e0b0; font-size: 34px; }
+  .d .stat.alt .v { color: #d6ff5c; }
+  .d .panel { background: #131e1b; border: 1px solid #21332d; border-radius: 12px; }
+  .d .panel h3 { color: #cfe6df; }
+  .d th { color: #6f8f87; }
+  .d td { color: #d7e8e2; }
+  .d thead tr { border-bottom: 1px solid #21332d; }
+  .d tbody tr { border-bottom: 1px solid #1a2925; }
+  .d .pill.hi { background: rgba(255,90,60,.16); color: #ff8a70; }
+  .d .pill.mid { background: rgba(230,170,60,.16); color: #f0c46a; }
+  .d .pill.lo { background: rgba(41,224,176,.14); color: #58e8c0; }
+  .d .bar { background: #1b2a26; }
+  .d .rowline { color: #9fbdb5; }
+  .d ul.remind li { color: #b9d3cb; }
+</style>
+</head>
+<body>
+
+<div class="tabs">
+  <button data-v="a" class="on">A 临床工作台</button>
+  <button data-v="b">B 接力时间轴</button>
+  <button data-v="c">C 温暖适老</button>
+  <button data-v="d">D 数据叙事</button>
+  <span class="hint">同一份内容、四种视觉语言 · 只改 CSS 变量与密度</span>
+</div>
+
+<!-- ============ A ============ -->
+<section class="variant a on" id="v-a">
+  <div class="stage">
+    <aside class="side">
+      <div class="brand"><div class="logo">接</div><div><b>医养接力站</b><small>社区照护工作台</small></div></div>
+      <nav class="nav">
+        <a class="on" href="#"><i class="dot"></i>护士工作台</a>
+        <a href="#"><i class="dot"></i>接收出院</a>
+        <a href="#"><i class="dot"></i>在管老人</a>
+        <a href="#"><i class="dot"></i>预警与工单 <b>4</b></a>
+        <a href="#"><i class="dot"></i>随访排期</a>
+      </nav>
+      <div class="foot">王护士 · 社区护士<br />大字 / 高对比</div>
+    </aside>
+    <main class="main">
+      <div class="kicker">NURSE WORKBENCH · 11月08日 周六</div>
+      <h1>今天要接住谁</h1>
+      <p class="lead">按风险与待办排序；点开一位老人，能看到他从出院到今天发生了什么。</p>
+
+      <div class="stats">
+        <div class="stat"><div class="k">在管老人</div><div class="v">4</div><div class="s">出院 30 天随访期</div></div>
+        <div class="stat"><div class="k">今日待随访</div><div class="v">1</div><div class="s">按风险分层排期</div></div>
+        <div class="stat"><div class="k">未关闭预警</div><div class="v">3</div><div class="s">数值越界 / 症状关键词</div></div>
+        <div class="stat"><div class="k">待处置工单</div><div class="v">1</div><div class="s">高危自动升级</div></div>
+      </div>
+
+      <div class="cols">
+        <div class="panel">
+          <h3>在管老人</h3>
+          <table>
+            <thead><tr><th>老人</th><th>风险</th><th>完成率</th><th>预警</th><th></th></tr></thead>
+            <tbody>
+              <tr><td>李国强 <span style="opacity:.55">CR-0002 · 84岁</span></td><td><span class="pill hi">高 · 7分</span></td><td>38%</td><td>3</td><td style="opacity:.5">查看 →</td></tr>
+              <tr><td>王秀兰 <span style="opacity:.55">CR-0001 · 78岁</span></td><td><span class="pill mid">中 · 4分</span></td><td>50%</td><td>—</td><td style="opacity:.5">查看 →</td></tr>
+              <tr><td>陈美英 <span style="opacity:.55">CR-0003 · 68岁</span></td><td><span class="pill lo">低 · 1分</span></td><td>0%</td><td>—</td><td style="opacity:.5">查看 →</td></tr>
+            </tbody>
+          </table>
+        </div>
+        <div class="panel">
+          <h3>风险分布</h3>
+          <div class="rowline"><span>高风险</span><span>1 人</span></div><div class="bar"><i style="width:25%;background:#b8422a"></i></div>
+          <div class="rowline"><span>中风险</span><span>2 人</span></div><div class="bar"><i style="width:50%;background:#b5751f"></i></div>
+          <div class="rowline"><span>低风险</span><span>1 人</span></div><div class="bar"><i style="width:25%;background:#1c6b53"></i></div>
+          <h3 style="margin-top:16px">接力提醒</h3>
+          <ul class="remind">
+            <li><b>出院小结结构化了吗</b>字段为空会影响评分与任务生成。</li>
+            <li><b>计划签发了吗</b>AI 只出草案，签发后才出现在家属端。</li>
+          </ul>
+        </div>
+      </div>
+    </main>
+  </div>
+</section>
+
+<!-- ============ B ============ -->
+<section class="variant b" id="v-b">
+  <div class="stage">
+    <aside class="side">
+      <div class="brand"><div class="logo">接</div><div><b>医养接力站</b><small>出院之后的 30 天</small></div></div>
+      <nav class="nav">
+        <a class="on" href="#"><i class="dot"></i>今天要接住谁</a>
+        <a href="#"><i class="dot"></i>接收新出院</a>
+        <a href="#"><i class="dot"></i>随访排期</a>
+        <a href="#"><i class="dot"></i>预警与工单</a>
+      </nav>
+      <div class="foot">王护士 · 社区护士</div>
+    </aside>
+    <main class="main">
+      <div class="kicker">CARE HANDOVER · 第 8 天</div>
+      <h1>出院不是终点，是接力的交接点</h1>
+      <p class="lead">四个人在一条链上交接：医院 → 社区护士 → 家属 → 家庭医生。断了哪一环，看得见。</p>
+
+      <div class="timeline">
+        <div class="node done"><span>1</span><div>交接</div></div>
+        <div class="node done"><span>2</span><div>执行</div></div>
+        <div class="node done"><span>3</span><div>随访</div></div>
+        <div class="node"><span>4</span><div>复盘</div></div>
+      </div>
+
+      <div class="stats" style="margin-top:16px">
+        <div class="stat"><div class="k">在管老人</div><div class="v">4</div><div class="s">累计 12 次交接</div></div>
+        <div class="stat"><div class="k">今天要随访</div><div class="v">1</div><div class="s">陈美英 · 电话</div></div>
+        <div class="stat"><div class="k">正在预警</div><div class="v">3</div><div class="s">2 条来自打卡</div></div>
+        <div class="stat"><div class="k">平均完成度</div><div class="v">29%</div><div class="s">较上周 +6%</div></div>
+      </div>
+
+      <div class="cols">
+        <div class="panel">
+          <h3>接力中的老人</h3>
+          <table>
+            <thead><tr><th>老人</th><th>走到第几天</th><th>风险</th><th>接力人</th></tr></thead>
+            <tbody>
+              <tr><td>李国强 <span style="opacity:.55">84岁 · 独居</span></td><td>第 8 天</td><td><span class="pill hi">高</span></td><td>王护士</td></tr>
+              <tr><td>王秀兰 <span style="opacity:.55">78岁 · 与子女同住</span></td><td>第 11 天</td><td><span class="pill mid">中</span></td><td>王护士</td></tr>
+              <tr><td>陈美英 <span style="opacity:.55">68岁 · 与配偶同住</span></td><td>第 3 天</td><td><span class="pill lo">低</span></td><td>李医生</td></tr>
+            </tbody>
+          </table>
+        </div>
+        <div class="panel">
+          <h3>这周掉在哪一环</h3>
+          <ul class="remind">
+            <li><b>执行环 · 28 项任务只完成 8 项</b>多数是"忘记"，下周把提醒挪到饭点。</li>
+            <li><b>随访环 · 李国强出现红旗</b>胸闷 + 出冷汗，已开 HIGH 工单。</li>
+            <li><b>复盘环 · 周四的周报没生成</b>点一下就补。</li>
+          </ul>
+        </div>
+      </div>
+    </main>
+  </div>
+</section>
+
+<!-- ============ C ============ -->
+<section class="variant c" id="v-c">
+  <div class="stage">
+    <aside class="side">
+      <div class="brand"><div class="logo">接</div><div><b>医养接力站</b><small>回家照着做</small></div></div>
+      <nav class="nav">
+        <a class="on" href="#"><i class="dot"></i>今天要做什么</a>
+        <a href="#"><i class="dot"></i>我的老人</a>
+        <a href="#"><i class="dot"></i>上周复盘</a>
+        <a href="#"><i class="dot"></i>有事找护士</a>
+      </nav>
+      <div class="foot">王奶奶的女儿<br />字号已放大</div>
+    </aside>
+    <main class="main">
+      <div class="kicker">今天 · 11月08日</div>
+      <h1>王奶奶，今天这三件事</h1>
+      <p class="lead">做完点一下"完成了"就行，护士那边能看到。</p>
+
+      <div class="stats">
+        <div class="stat"><div class="k">今天要做</div><div class="v">3</div><div class="s">已完成 1 项</div></div>
+        <div class="stat"><div class="k">下次复诊</div><div class="v">11-20</div><div class="s">心内科 · 带出院小结</div></div>
+        <div class="stat"><div class="k">最近血压</div><div class="v">138/86</div><div class="s">昨天上午</div></div>
+        <div class="stat"><div class="k">随访</div><div class="v">3 天后</div><div class="s">护士会打电话</div></div>
+      </div>
+
+      <div class="cols">
+        <div class="panel">
+          <h3>照着做</h3>
+          <table>
+            <thead><tr><th>事项</th><th>时间</th><th></th></tr></thead>
+            <tbody>
+              <tr><td>服药 · 阿司匹林肠溶片 100mg</td><td>上午</td><td><span class="pill lo">已完成</span></td></tr>
+              <tr><td>测血压，记下两个数字</td><td>上午</td><td><span class="pill mid">去记录</span></td></tr>
+              <tr><td>康复活动 · 扶着助行器走 2 次</td><td>晚上</td><td><span class="pill mid">去记录</span></td></tr>
+            </tbody>
+          </table>
+        </div>
+        <div class="panel">
+          <h3>有不舒服，记一句</h3>
+          <ul class="remind">
+            <li><b>什么时候该马上打电话</b>胸口闷、喘不上气、说不出话、摔倒。</li>
+            <li><b>不急的话</b>写一句留这儿，护士明天会看。</li>
+          </ul>
+        </div>
+      </div>
+    </main>
+  </div>
+</section>
+
+<!-- ============ D ============ -->
+<section class="variant d" id="v-d">
+  <div class="stage">
+    <aside class="side">
+      <div class="brand"><div class="logo">CR</div><div><b>CARERELAY</b><small>HANDOVER INTELLIGENCE</small></div></div>
+      <nav class="nav">
+        <a class="on" href="#"><i class="dot"></i>Overview</a>
+        <a href="#"><i class="dot"></i>Intake</a>
+        <a href="#"><i class="dot"></i>Alerts</a>
+        <a href="#"><i class="dot"></i>Reports</a>
+      </nav>
+      <div class="foot">model: deepseek-chat<br />latency p50 1.4s</div>
+    </aside>
+    <main class="main">
+      <div class="kicker">30-DAY WINDOW · LIVE</div>
+      <h1>4 位老人，3 条链路正在跑</h1>
+      <p class="lead">每一次模型调用都被记录：谁调的、用了多少数据、护士是否采纳。</p>
+
+      <div class="stats">
+        <div class="stat"><div class="k">IN CARE</div><div class="v">4</div><div class="s">30-day window</div></div>
+        <div class="stat alt"><div class="k">AI CALLS TODAY</div><div class="v">37</div><div class="s">adopted 82%</div></div>
+        <div class="stat"><div class="k">OPEN ALERTS</div><div class="v">3</div><div class="s">1 high · 2 medium</div></div>
+        <div class="stat alt"><div class="k">COMPLIANCE</div><div class="v">29%</div><div class="s">+6% w/w</div></div>
+      </div>
+
+      <div class="cols">
+        <div class="panel">
+          <h3>Risk &amp; compliance</h3>
+          <table>
+            <thead><tr><th>ELDER</th><th>SCORE</th><th>LEVEL</th><th>COMPLIANCE</th></tr></thead>
+            <tbody>
+              <tr><td>李国强 · CR-0002</td><td>7</td><td><span class="pill hi">HIGH</span></td><td>38%</td></tr>
+              <tr><td>王秀兰 · CR-0001</td><td>4</td><td><span class="pill mid">MEDIUM</span></td><td>50%</td></tr>
+              <tr><td>陈美英 · CR-0003</td><td>1</td><td><span class="pill lo">LOW</span></td><td>0%</td></tr>
+            </tbody>
+          </table>
+        </div>
+        <div class="panel">
+          <h3>Pipeline</h3>
+          <div class="rowline"><span>EXTRACT</span><span>2.4s</span></div><div class="bar"><i style="width:70%;background:#29e0b0"></i></div>
+          <div class="rowline"><span>PLAN</span><span>3.1s</span></div><div class="bar"><i style="width:55%;background:#29e0b0"></i></div>
+          <div class="rowline"><span>CHECKIN</span><span>1.2s</span></div><div class="bar"><i style="width:38%;background:#d6ff5c"></i></div>
+          <ul class="remind" style="margin-top:14px">
+            <li><b>Rule-first</b>数值与阈值由代码判定，模型只解释。</li>
+          </ul>
+        </div>
+      </div>
+    </main>
+  </div>
+</section>
+
+<script>
+  const buttons = document.querySelectorAll('.tabs button')
+  buttons.forEach((btn) => {
+    btn.addEventListener('click', () => {
+      buttons.forEach((b) => b.classList.remove('on'))
+      btn.classList.add('on')
+      document.querySelectorAll('section.variant').forEach((s) => s.classList.remove('on'))
+      document.getElementById('v-' + btn.dataset.v).classList.add('on')
+    })
+  })
+</script>
+</body>
+</html>
