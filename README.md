@@ -101,9 +101,26 @@ deploy/     docker-compose 与 nginx 配置（留档，演示包不用它）
 
 ## 怎么跑起来
 
-**演示包（最省事，答辩用这个）**：解压 `医养接力站-演示版-免安装-*.zip`，双击里面的 **`启动演示.cmd`**，等窗口打印「已就绪：http://127.0.0.1:4191」后打开这个地址即可。包内自带 JRE 21、便携 MySQL 8 与预置数据，换一台干净电脑也不用装环境。
+评审或换一台机器，走这四步就够了（不需要作者本机的任何脚本）：
 
-**开发模式**：`scripts/db-start.ps1` 起便携 MySQL（3307）→ `scripts/backend-run.ps1` 起后端 → 打开 `http://127.0.0.1:8081`（前端静态页随 jar 一起提供，改完刷新即可，不用单独起前端服务）。
+1. 装 **JDK 21** 与 **MySQL 8**，建一个空库：
+   ```sql
+   CREATE DATABASE carerelay CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci;
+   ```
+2. 给数据库连接（也可把 `.env.example` 复制成 `.env` 后填进去）：
+   ```powershell
+   $env:DB_HOST='127.0.0.1'; $env:DB_PORT='3306'; $env:DB_NAME='carerelay'
+   $env:DB_USER='root'; $env:DB_PASSWORD='你的密码'; $env:SERVER_PORT='8081'
+   ```
+3. 打包并启动：
+   ```powershell
+   cd backend
+   mvn -DskipTests package
+   java -jar target/carerelay-backend-0.1.0-SNAPSHOT.jar --server.port=8081
+   ```
+4. 打开 `http://127.0.0.1:8081`。四端前端随 jar 一起提供；首次启动 Flyway 自动执行 V1–V10 建表并写入演示数据，不用手动导入 SQL。
+
+AI 是可选项：设了 `CR_AI_API_KEY` 就走真实模型，不设则五条 AI 能力自动降级为本地规则，四端流程照样能演示。
 
 演示账号（登录页点角色按钮会自动填）：
 
@@ -114,7 +131,7 @@ deploy/     docker-compose 与 nginx 配置（留档，演示包不用它）
 | 出院老人 | `elder1` | `elder123` |
 | 管理员 | `admin` | `admin123` |
 
-前置条件（仅开发模式需要）：JDK 21、Maven；演示包不需要任何环境。
+> 下面的 `scripts/*.ps1` 是**我本机的便捷脚本**（里面写着本机的 MySQL 解压路径与 3307 端口），换机器请用上面四步；它们只是省事，不是运行前提。
 
 ## 本地跑起来
 
