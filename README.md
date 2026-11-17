@@ -22,14 +22,14 @@
 
 | 页面 | 截图 |
 |---|---|
-| 登录（三个演示账号一键填充） | ![登录](docs/screenshots/01-login.png) |
-| 护士工作台（风险分层 + 待办 + 在管老人） | ![工作台](docs/screenshots/02-workbench.png) |
-| 老人详情（风险卡 / 计划 / 派药 / 随访排期） | ![老人详情](docs/screenshots/03-elder-detail.png) |
-| 接收出院（建档 + 粘贴出院小结） | ![接收出院](docs/screenshots/09-new-elder.png) |
-| 今日任务（按上午/晚上分组，完成度实时） | ![今日任务](docs/screenshots/04-today-tasks.png) |
-| 随访对话（六问脚本，红旗自动升级） | ![随访](docs/screenshots/05-followup-chat.png) |
-| 预警与工单（规则码可追溯） | ![预警](docs/screenshots/06-alerts-tickets.png) |
-| 家属端（只做今天这几件事） | ![家属端](docs/screenshots/08-family-today.png) |
+| 登录（四个演示账号一键填充，注册只开放出院老人） | ![登录](docs/screenshots/01-login.png) |
+| 医院主治医生 · 出院追踪（异常横幅 + 四张统计卡） | ![出院追踪](docs/screenshots/hospital-tracking.png) |
+| 出院患者（风险排序、完成率、出院天数） | ![出院患者](docs/screenshots/hospital-elders.png) |
+| AI 接力台（工具轨迹 + 知识库命中 + 待确认动作） | ![AI 接力台](docs/screenshots/agent.png) |
+| 社区照护员 · 今日任务（该管谁、从哪下手） | ![今日任务](docs/screenshots/nurse-today.png) |
+| 出院老人端（一屏看完今天要做什么） | ![老人端](docs/screenshots/elder-home.png) |
+| 管理员 · 数据总览 | ![数据总览](docs/screenshots/admin-overview.png) |
+| 管理员 · 系统配置（AI 模型地址、模型名、Key 与连通测试） | ![系统配置](docs/screenshots/admin-ai-config.png) |
 
 ## AI 在系统里怎么跑
 
@@ -51,9 +51,10 @@
 ## 技术栈
 
 - 后端：Spring Boot 3.3 + Java 21 + MyBatis-Plus + Flyway + MySQL 8
-- 前端：Vue 3 + Vite + TypeScript + Pinia（**不引组件库**，界面样式全部手写，打包产物 109 kB / gzip 42 kB）
-- AI：OpenAI 兼容协议（默认 DeepSeek），提示词外置到 `resources/prompts/*.md`，每次调用落 `ai_request` 表
-- 工程：所有 AI 协作过程记录在 `docs/ai-log/`，与 Git 提交一一对应；23 个单元测试覆盖判读规则、JSON 序列化与角色边界
+- 前端（当前交付）：`backend/src/main/resources/static/` 下 6 个文件的原生页面 —— `index.html`（登录 / 注册）、`workbench.html`（工作台外壳）、`app.css`、`api.js`、`ui.js`、`views.js`（四端视图与 AI 接力台）。不引框架、不引组件库，打包后随 jar 一起发布，改完刷新即生效。
+- 前端（旧版，保留对照）：`frontend/` 下 Vue 3 + Vite + TypeScript + Pinia 的管理端源码，演示包已不再发布这一版，留作改版前后的对照。
+- AI：OpenAI 兼容协议（默认 DeepSeek `deepseek-chat`），提示词外置到 `resources/prompts/*.md`，每次调用落 `ai_logs` / `ai_request` 表
+- 工程：所有 AI 协作过程记录在 `docs/ai-log/`，与 Git 提交一一对应；后端单测覆盖判读规则、JSON 序列化与角色边界
 
 ## 我和 AI 怎么分工
 
@@ -73,49 +74,52 @@ AI 在其中承担一部分代码的初稿，比如几个判读函数、页面�
 
 ## 页面
 
+新版只有两个 HTML：`index.html` 管登录注册，`workbench.html` 按角色渲染左侧菜单，切页在 JS 里完成，不整页刷新。下面按「哪个角色用哪块」列。
+
 | 路径 | 给谁看 | 做什么 |
 |---|---|---|
-| `/login` | 护士 / 医生 | 演示账号一键填充 |
-| `/` 工作台 | 社区护士 | 四个统计卡、风险分布、在管老人表（完成率 / 未关闭预警 / 随访红旗）、接力提醒 |
-| `/elders/new`、`/elders/:id/import` | 护士 | 建档（逐字段校验）→ 粘出院小结 → 抽取 → **人工填写 / 修订** → 风险评分卡与计划入口 |
-| `/elders/:id` | 护士 | 老人档案、最近出院小结与药单、评分卡因子、30 天计划、随访排期、预警列表 |
-| `/elders/:id/plan/:planId` | 护士 | 计划全文 + "任务将这样展开" + 签发 |
-| `/elders/:id/today` | 家属 / 护士 | 今日任务打卡：血压两格、血糖体温血氧一格、文字描述触发模型判读 |
-| `/elders/:id/followup` | 护士 | 六问对话随访、红案例自动升级工单 |
-| `/elders/:id/report` | 护士 / 医生 | 双版本周报（家属版 / 临床版 markdown）+ 30 天结局 |
-| `/alerts` | 护士 / 医生 | 预警与工单处置，附处置说明与审计 |
-| `/settings` | **仅管理员** | 在界面里填模型地址 / Key / 模型名 / 超时，保存即生效，不用重启 |
-| `/family` | 家属 | 输入老人编号（CR-000x）看今日任务、记录一句症状、看本周复盘；支持大字/高对比 |
+| `index.html`（`/`） | 全部角色 | 登录 + 注册两个标签；上方四个角色按钮一键填充演示账号；注册只开放「出院老人」，填完直接建档并绑定 |
+| 工作台 · 出院追踪 | 医院主治医生 | 体征异常横幅、四张统计卡（AI 报告待阅 / 待复诊 / 远程咨询 / 异常回传）、按风险排序的在管老人表 |
+| 工作台 · 出院患者 | 医院主治医生 | 档案弹窗（诊断、风险分、完成率、近期记录）、评估报告、调方 |
+| 工作台 · AI 接力台 | 医院主治医生 / 社区照护员 | 选老人 + 写本次重点，模型自己调工具（读档案 / 查未闭环预警 / 评风险 / 检索知识库 / 起草方案），结论带知识库出处，动作勾选后才写库 |
+| 工作台 · AI 康复评估 | 医院主治医生 | 一键生成康复方案草案、随访摘要、分诊建议、康复动作指导 |
+| 工作台 · 远程答疑 | 医院主治医生 | 家属 / 老人侧的提问列表与回复 |
+| 工作台 · 复诊安排 | 医院主治医生 | 登记复诊、完成复诊（自动排一条「复诊后随访」） |
+| 工作台 · 今日任务 / 接收出院 / 预警与工单 / 在管老人 / 护理记录 | 社区照护员 | 该管谁、上门做什么；登记体征（越界自动建预警）；闭环预警需写处置结论 |
+| 工作台 · 我的首页 / 康复计划 / 复诊通知 / 联系医生 | 出院老人 | 大字界面的「今天这几件事」；症状短语一键填入聊天框 |
+| 工作台 · 数据总览 / 账号与权限 / 档案管理 / 运营报表 / 系统配置 | 管理员 | 统计、停启用账号、新增 / 编辑老人档案、导出 CSV、填 AI 的地址 / 模型 / Key 并测连通 |
 
 ## 目录
 
 ```
-backend/    Spring Boot 服务（:8081）
-frontend/   Vue 3 前端（构建产物 dist/，演示时用 scripts/serve-frontend.mjs 起 :4173）
-docs/       方向说明、开发协议、AI 协作日志
-scripts/    本地启动、自检、演示数据编排
-deploy/     部署配置
+backend/    Spring Boot 服务（开发默认 :8081），四端前端就在 backend/src/main/resources/static/
+frontend/   旧版 Vue 3 管理端源码（保留对照，演示包不再发布这一版）
+docs/       方向说明、技术文档、指导老师改版说明、AI 协作日志
+scripts/    本地起库、起后端、自检与打包脚本
+deploy/     docker-compose 与 nginx 配置（留档，演示包不用它）
 ```
 
-## 一键启动（最快）
+## 怎么跑起来
 
-双击项目根目录的 **`启动.cmd`**：依次拉起 MySQL → 后端 8081 → 前端 4173 → 打开浏览器。
-停止：双击 **`停止.cmd`**。
+**演示包（最省事，答辩用这个）**：解压 `医养接力站-演示版-免安装-*.zip`，双击里面的 **`启动演示.cmd`**，等窗口打印「已就绪：http://127.0.0.1:4191」后打开这个地址即可。包内自带 JRE 21、便携 MySQL 8 与预置数据，换一台干净电脑也不用装环境。
 
-脚本 `scripts/start-all.ps1` 做的事：
+**开发模式**：`scripts/db-start.ps1` 起便携 MySQL（3307）→ `scripts/backend-run.ps1` 起后端 → 打开 `http://127.0.0.1:8081`（前端静态页随 jar 一起提供，改完刷新即可，不用单独起前端服务）。
 
-1. 调 `scripts/db-start.ps1` 起便携版 MySQL（数据目录固定在 `C:\carerelay-mysql-root`，因为 mysqld 不认中文路径）
-2. 以隐藏窗口启动 `backend/target/carerelay-backend-0.1.0-SNAPSHOT.jar`，带 `-Djava.io.tmpdir=<项目>\.tmp\tmp`
-3. `frontend/dist` 不存在就先 `npm run build`，再起 `scripts/serve-frontend.mjs`
-4. 轮询 `/api/v1/health` 与 4173，就绪后自动打开浏览器
+演示账号（登录页点角色按钮会自动填）：
 
-日志在 `.tmp/backend.log`、`.tmp/frontend.log`。登录用 `13800000001 / nurse123`。
-前置条件：JDK 21、Node 18+ 已装；jar 已构建过（`cd backend` 后 `mvn -DskipTests package`）。
+| 角色 | 账号 | 密码 |
+|---|---|---|
+| 医院主治医生 | `hospital` | `hosp123` |
+| 社区照护员 | `nurse` | `nurse123` |
+| 出院老人 | `elder1` | `elder123` |
+| 管理员 | `admin` | `admin123` |
+
+前置条件（仅开发模式需要）：JDK 21、Maven；演示包不需要任何环境。
 
 ## 本地跑起来
 
 > 两个环境限制，踩过才知道，先写在这里：
-> 1. **端口**：8080 常被占用，后端默认 8081；前端 5173。
+> 1. **端口**：8080 常被占用，后端默认 8081。
 > 2. **数据库路径必须是纯英文**：`mysqld.exe` 会把非 ASCII 路径截断（`D:\学习\...\data` 被读成 `D:\data\`），
 >    所以 `db-start.ps1` 把便携 MySQL 放在 `C:\carerelay-mysql-root\cr-mysql`。首次运行会复制约 860MB 并初始化数据目录，只做一次。
 
@@ -126,11 +130,9 @@ deploy/     部署配置
 # 2) 起后端（自动打包并运行在 8081）
 .\scripts\backend-run.ps1
 
-# 3) 构建并托管前端（推荐：静态服务比 dev 稳，录屏不会抖）
-cd frontend; npm install; npm run build; cd ..
-node scripts/serve-frontend.mjs        # http://127.0.0.1:4173
+# 3) 打开 http://127.0.0.1:8081 —— 四端前端随 jar 一起提供，不需要单独构建或起前端服务
 
-# 4) 铺演示数据（走真实接口，产出真实预警/工单/报告/ai_request）
+# 4) 铺演示数据（走真实接口，产出真实预警/工单/报告/ai_logs）
 node scripts/demo-seed.mjs
 
 # 录屏/答辩前想回到完全一样的初始状态，用这一条代替第 4 步：
@@ -139,14 +141,14 @@ node scripts/demo-seed.mjs
 
 **第 5 步：接入模型（可选，但演示建议配）**
 
-1. 浏览器打开 <http://127.0.0.1:4173>，用管理员账号 `13800000000 / admin123` 登录；
-2. 左侧点「系统设置」（只有管理员能看到这一项）；
+1. 浏览器打开 <http://127.0.0.1:8081>，用管理员账号 `admin / admin123` 登录；
+2. 左侧点「系统配置」（只有管理员能看到这一项）；
 3. 填接口地址（如 `https://api.deepseek.com/v1`）、模型名（如 `deepseek-chat`）、粘贴 API Key；
 4. 点「测试连接」——成功会显示模型回的一句话与耗时；再点「保存设置」，**立即生效，不用重启**。
 
 Key 只写本机数据库 `app_setting`，界面上只回显末四位；也可以继续用环境变量 `CR_AI_API_KEY` 启动后端（库里没值时才用环境变量，页面上会写明当前生效的是哪一处）。
 
-> 前端也可以 `npm run dev` 起在 5173（`/api` 由 Vite 代理到 8081）。
+> 旧版 Vue 管理端仍可 `cd frontend; npm run dev` 起在 5173（`/api` 由 Vite 代理到 8081），只作对照用。
 
 健康检查：<http://127.0.0.1:8081/api/v1/health>
 接口文档：<http://127.0.0.1:8081/swagger-ui.html>
@@ -164,14 +166,14 @@ node scripts\demo-seed.mjs       # 把四个环跑成一条可讲解的故事
 
 ### 演示账号
 
-| 角色 | 手机号 | 密码 |
+| 角色 | 账号 | 密码 |
 |---|---|---|
-| 中心管理员 | 13800000000 | admin123 |
-| 社区护士 | 13800000001 | nurse123 |
-| 家庭医生 | 13800000002 | doctor123 |
-| 家属 | 13800000003 | family123 |
+| 医院主治医生 | `hospital` | `hosp123` |
+| 社区照护员 | `nurse` | `nurse123` |
+| 出院老人 | `elder1` | `elder123` |
+| 管理员 | `admin` | `admin123` |
 
-首次启动时由 `DemoDataSeeder` 自动写入，库里只存 BCrypt 散列。
+由 Flyway 迁移 `V8__station_module.sql` 写入，`V9` 里删掉了改版初期的 `doctor` 与 `family` 两个测试账号；库里存的是明文口令（演示环境，仅本机使用，不对公网开放）。
 
 ### 配置 AI
 
@@ -184,7 +186,7 @@ node scripts\demo-seed.mjs       # 把四个环跑成一条可讲解的故事
 - [`docs/01-AI运行方向说明.md`](docs/01-AI运行方向说明.md) —— AI 能力清单、关键流程、工程约定、评测与成本（方向文档）
 - [`docs/03-技术文档.md`](docs/03-技术文档.md) —— 架构、数据模型、四环实现、AI 工程规范、测试与缺陷复盘（提交用技术文档）
 - [`docs/05-提交清单与答辩要点.md`](docs/05-提交清单与答辩要点.md) —— 交什么、自检清单、评审维度对齐、十个答辩问答、已知短板
-- `docs/screenshots/` —— 八个页面的真实截图（走查时用浏览器逐个点开拍的）
+- `docs/screenshots/` —— 四端八张真实截图（登录 / 出院追踪 / 出院患者 / AI 接力台 / 照护员今日任务 / 老人端 / 数据总览 / 系统配置）；旧版界面截图在 `docs/screenshots/legacy/` 留档
 - `docs/ai-log/` —— 每轮 AI 协作的输入、产出、人工改动与验证结论（D0 脚手架 / D1 交接环 / D2 执行环 / D3 随访环 / D4 模型接通与复盘环 / D5 前端与演示数据 / D6 角色边界与验收脚本 / D7 界面走查 / D8 建档表单校验 / D9 人工填写链路 / D10 系统设置与模型接入）
 
 ## 赛事说明
@@ -195,6 +197,16 @@ node scripts\demo-seed.mjs       # 把四个环跑成一条可讲解的故事
   每轮对话的留痕见 `docs/ai-log/`。
 
 ## 进度
+
+> 下面这一节是 11 月初旧版（Vue 管理端 + `/api/v1`）的开发记录，按原样留着当过程证据。
+> 改版（四端工作台、AI 接力台与知识库）的说明见 [`docs/06-指导老师改版说明.md`](docs/06-指导老师改版说明.md)。
+
+- [x] 改版：按指导老师意见把前端换成四端（医院主治医生 / 社区照护员 / 出院老人 / 管理员），`/api` 一套新接口，V8–V10 三个迁移建 10 张表 + 40 条知识
+- [x] AI 接力台：模型自选工具（读档案 / 查预警 / 评风险 / 检索知识库 / 起草方案），结论带《文档》第 N 条出处，写库前勾选确认
+- [x] 演示包：免安装 zip（自带 JRE + MySQL + 预置库），双击启动，4191 打开
+- [x] Git 仓库：10 次提交推送到 <https://github.com/saluokede/carerelay>
+- [x] 录屏成片 6 分 57 秒（2416×1440，含口播）
+- [x] 技术文档：`docs/03-技术文档.md` 重写为赛项结构（17 页 PDF，含 AI 选型理由 / 集成方式 / 优化策略 / 创新点专章）
 
 - [x] 住院记录 ↔ 出院小结关联（按"老人 + 出院日期"自动关联，详情页可一键切到那一份出院小结）
 - [x] 住院次数 / 累计住院天数统计（GET /api/v1/admissions/stats，工作台「在管老人」新增「住院」列）
@@ -232,6 +244,5 @@ node scripts\demo-seed.mjs       # 把四个环跑成一条可讲解的故事
 - [x] 系统设置页 `/settings`（仅管理员）：界面填 Key 即时生效；服务端 `RoleRules.requiresAdmin` 兜底；Key 存库、界面只回显末四位、写审计不记 Key
 - [x] 建档表单逐字段校验（必填、手机号格式、出生日期不晚于今天、基础病/过敏不能是纯数字，改一处即时消失）
 - [x] 界面走查：八页我在浏览器里逐个点开看，挑出四处：随访气泡字段不一致、列表漏 transcript、家属端空编号无提示、出院日期排序。改法由我定，其中两处映射与提示文案让 AI 出了补丁，其余我自己改，结论记在 `docs/ai-log/` 的 D7
-    - 截图存在 `docs/screenshots/`（登录 → 工作台 → 老人详情 → 今日任务 → 随访 → 预警 → 周报 → 家属端）
-- [ ] 录屏（5–8 分钟）、技术文档 PDF（≤30 页）、Git 提交历史
-- [ ] 待用户决定：`git init` 与提交节奏（当前仓库尚未初始化 Git）
+    - 当时截图在 `docs/screenshots/legacy/`（旧版界面的留档）
+
