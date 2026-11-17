@@ -1,0 +1,34 @@
+# ---- Java / Maven ----
+target/
+*.class
+*.jar
+!.mvn/wrapper/maven-wrapper.jar
+.mvn/timing.properties
+
+# ---- 前端 ----
+node_modules/
+dist/
+dist-ssr/
+.vite/
+*.local
+
+# ---- IDE ----
+.idea/
+*.iml
+.vscode/
+*.swp
+
+# ---- 环境与密钥（绝不入库）----
+.env
+.env.local
+deploy/.env
+
+# ---- 运行产物 ----
+uploads/
+logs/
+*.log
+.DS_Store
+Thumbs.db
+
+# ---- 本地验证产物（含 token、构建中间物）----
+.tmp/
