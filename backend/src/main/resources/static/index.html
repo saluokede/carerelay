@@ -1,0 +1,184 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>医养接力站 · 登录</title>
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='8' fill='%231F6F5C'/%3E%3Ctext x='16' y='22' font-size='16' text-anchor='middle' fill='white' font-family='sans-serif'%3E接%3C/text%3E%3C/svg%3E">
+<link rel="stylesheet" href="assets/css/app.css?v=20261117a">
+</head>
+<body>
+<div class="login-wrap">
+  <div class="login-card">
+    <div class="logo">接</div>
+    <h1>医养接力站</h1>
+    <div class="sub">面向出院老人的智能康复照护与社区随访系统</div>
+
+    <div class="auth-tabs">
+      <button type="button" id="tabLogin" class="active">登录</button>
+      <button type="button" id="tabRegister">注册</button>
+    </div>
+
+    <!-- 登录面板 -->
+    <div id="loginPanel">
+      <div class="role-chips" id="roleChips"></div>
+      <div class="field">
+        <label>账号</label>
+        <input id="username" autocomplete="username" placeholder="请输入账号">
+      </div>
+      <div class="field">
+        <label>密码</label>
+        <input id="password" type="password" autocomplete="current-password" placeholder="请输入密码">
+      </div>
+      <button class="btn btn-primary btn-lg" style="width:100%" id="loginBtn">进入系统</button>
+      <div class="login-hint">
+        演示账号（点上方角色自动填充）：<br>
+        医院主治医生 hospital / hosp123；社区照护员 nurse / nurse123；<br>
+        出院老人 elder1 / elder123；管理员 admin / admin123
+      </div>
+    </div>
+
+    <!-- 注册面板：出院老人自助注册 -->
+    <div id="regPanel" style="display:none">
+      <div class="role-chips" id="regRoleChips">
+        <button type="button" class="active" data-role="elder">老人本人</button>
+      </div>
+      <div class="field">
+        <label>登录账号</label>
+        <input id="regUsername" autocomplete="username" placeholder="至少 3 个字符">
+      </div>
+      <div class="field">
+        <label>设置密码</label>
+        <input id="regPassword" type="password" autocomplete="new-password" placeholder="请设置密码">
+      </div>
+      <div class="field">
+        <label>姓名</label>
+        <input id="regName" placeholder="老人本人姓名">
+      </div>
+      <div class="field">
+        <label>联系电话</label>
+        <input id="regPhone" placeholder="便于医护联系">
+      </div>
+      <div id="regElderExtra">
+        <div class="field">
+          <label>老人姓名（需与档案一致）</label>
+          <input id="regElderName" placeholder="绑定已有老人档案">
+        </div>
+      </div>
+      <div id="regSelfExtra">
+        <div class="field">
+          <label>年龄</label>
+          <input id="regAge" type="number" placeholder="如 72">
+        </div>
+        <div class="field">
+          <label>性别</label>
+          <select id="regGender"><option value="女">女</option><option value="男">男</option></select>
+        </div>
+        <div class="field">
+          <label>出院诊断 / 慢病</label>
+          <input id="regDiag" placeholder="如 股骨置换术后">
+        </div>
+        <div class="field">
+          <label>居住情况</label>
+          <select id="regLiving"><option value="与子女同住">与子女同住</option><option value="独居">独居</option></select>
+        </div>
+        <div class="field">
+          <label>现住址</label>
+          <input id="regAddress" placeholder="便于上门随访">
+        </div>
+      </div>
+      <button class="btn btn-primary btn-lg" style="width:100%" id="regBtn">注册并进入系统</button>
+      <div class="login-hint">医院主治医生、社区照护员与管理员账号由后台统一开通，不开放自助注册。</div>
+    </div>
+  </div>
+</div>
+
+<script src="assets/js/api.js?v=20261117a"></script>
+<script>
+const ROLES = [
+  { key: 'hospital',      label: '医院主治医生', username: 'hospital', password: 'hosp123' },
+  { key: 'nurse',         label: '社区照护员', username: 'nurse',  password: 'nurse123' },
+  { key: 'elder',         label: '出院老人',   username: 'elder1', password: 'elder123' },
+  { key: 'admin',         label: '管理员',     username: 'admin',   password: 'admin123' },
+];
+const chips = document.getElementById('roleChips');
+const $u = document.getElementById('username');
+const $p = document.getElementById('password');
+
+ROLES.forEach(r => {
+  const b = document.createElement('button');
+  b.type = 'button';
+  b.textContent = r.label;
+  b.onclick = () => {
+    document.querySelectorAll('.role-chips button').forEach(x => x.classList.remove('active'));
+    b.classList.add('active');
+    $u.value = r.username; $p.value = r.password;
+  };
+  chips.appendChild(b);
+});
+
+document.getElementById('loginBtn').onclick = async () => {
+  try {
+    const data = await API.login($u.value.trim(), $p.value);
+    Session.setToken(data.token);
+    Session.setUser(data);
+    location.href = 'workbench.html';
+  } catch (e) { toast(e.message); }
+};
+
+/* 登录 / 注册切换 */
+const tabLogin = document.getElementById('tabLogin');
+const tabRegister = document.getElementById('tabRegister');
+const loginPanel = document.getElementById('loginPanel');
+const regPanel = document.getElementById('regPanel');
+function showPanel(which) {
+  const isLogin = which === 'login';
+  tabLogin.classList.toggle('active', isLogin);
+  tabRegister.classList.toggle('active', !isLogin);
+  loginPanel.style.display = isLogin ? '' : 'none';
+  regPanel.style.display = isLogin ? 'none' : '';
+}
+tabLogin.onclick = () => showPanel('login');
+tabRegister.onclick = () => showPanel('register');
+
+/* 注册角色切换 */
+let regRole = 'elder';
+const regRoleChips = document.getElementById('regRoleChips');
+regRoleChips.querySelectorAll('button').forEach(b => {
+  b.onclick = () => {
+    regRoleChips.querySelectorAll('button').forEach(x => x.classList.remove('active'));
+    b.classList.add('active');
+    regRole = b.dataset.role;
+    document.getElementById('regSelfExtra').style.display = regRole === 'elder' ? '' : 'none';
+    document.getElementById('regElderExtra').style.display = regRole === 'family' ? '' : 'none';
+  };
+});
+document.getElementById('regElderExtra').style.display = 'none';
+
+document.getElementById('regBtn').onclick = async () => {
+  const payload = {
+    role: regRole,
+    username: document.getElementById('regUsername').value.trim(),
+    password: document.getElementById('regPassword').value,
+    name: document.getElementById('regName').value.trim(),
+    phone: document.getElementById('regPhone').value.trim(),
+  };
+  if (regRole === 'elder') {
+    payload.age = document.getElementById('regAge').value;
+    payload.gender = document.getElementById('regGender').value;
+    payload.diag = document.getElementById('regDiag').value.trim();
+    payload.living = document.getElementById('regLiving').value;
+    payload.address = document.getElementById('regAddress').value.trim();
+  } else {
+    payload.elder_name = document.getElementById('regElderName').value.trim();
+  }
+  try {
+    const data = await API.register(payload);
+    Session.setToken(data.token);
+    Session.setUser(data);
+    location.href = 'workbench.html';
+  } catch (e) { toast(e.message); }
+};
+</script>
+</body>
+</html>

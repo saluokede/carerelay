@@ -1,0 +1,64 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>医养接力站 · 工作台</title>
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='8' fill='%231F6F5C'/%3E%3Ctext x='16' y='22' font-size='16' text-anchor='middle' fill='white' font-family='sans-serif'%3E接%3C/text%3E%3C/svg%3E">
+<link rel="stylesheet" href="assets/css/app.css?v=20261117a">
+</head>
+<body>
+<div class="shell">
+  <aside class="sidebar" id="sidebar"></aside>
+  <main class="main" id="main"></main>
+</div>
+<script src="assets/js/api.js?v=20261117a"></script>
+<script src="assets/js/ui.js?v=20261117a"></script>
+<script src="assets/js/views.js?v=20261117a"></script>
+<script>
+(function () {
+  const user = Session.user;
+  if (!user) { location.href = 'index.html'; return; }
+
+  const view = VIEWS[user.role] || VIEWS.admin;
+  const nav = view.nav;
+  let current = nav[0].key;
+
+  document.getElementById('sidebar').innerHTML = `
+    <div class="brand">
+      <div class="logo">接</div>
+      <div><div class="name">医养接力站</div><div class="sub">出院老人照护接力</div></div>
+    </div>
+    <div class="role-tag">${view.title}</div>
+    <nav class="nav">
+      ${nav.map(n => `<button class="nav-item" data-key="${n.key}">${n.label}</button>`).join('')}
+    </nav>
+    <div class="spacer"></div>
+    <button class="logout" id="profileBtn">我的资料</button>
+    <button class="logout" id="logoutBtn">退出登录</button>`;
+
+  document.getElementById('logoutBtn').onclick = () => { Session.clear(); location.href = 'index.html'; };
+
+  const main = document.getElementById('main');
+  function renderPage() {
+    document.querySelectorAll('.nav-item').forEach(b =>
+      b.classList.toggle('active', b.dataset.key === current));
+    const go = (key) => { current = key; renderPage(); };
+    view.pages[current](main, user, go).catch(e => toast(e.message));
+  }
+  document.querySelectorAll('.nav-item').forEach(b => {
+    b.onclick = () => { current = b.dataset.key; renderPage(); };
+  });
+  document.getElementById('profileBtn').onclick = () => {
+    openProfileModal(user, (saved) => {
+      Object.assign(user, saved);
+      Session.setUser(saved);
+      toast('资料已保存');
+      renderPage();
+    });
+  };
+  renderPage();
+})();
+</script>
+</body>
+</html>
